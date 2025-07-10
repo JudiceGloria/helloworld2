@@ -2,26 +2,110 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Bernardo's Website</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Mini Fortnite</title>
   <style>
     body {
-      background-color: #f4f4f4;
-      font-family: Arial, sans-serif;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      height: 100vh;
       margin: 0;
+      background-color: #1e1e1e;
+      overflow: hidden;
     }
-    h1 {
-      font-size: 2.5rem;
-      color: #333;
+
+    canvas {
+      display: block;
+      background-color: #87ceeb;
     }
   </style>
 </head>
 <body>
-  <h1>You have reached Bernardo's website</h1>
+  <canvas id="gameCanvas"></canvas>
+
+  <script>
+    const canvas = document.getElementById('gameCanvas');
+    const ctx = canvas.getContext('2d');
+
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+
+    const player = {
+      x: canvas.width / 2,
+      y: canvas.height - 60,
+      width: 40,
+      height: 40,
+      color: 'green',
+      speed: 10
+    };
+
+    const bullets = [];
+    const enemies = [];
+
+    function drawPlayer() {
+      ctx.fillStyle = player.color;
+      ctx.fillRect(player.x, player.y, player.width, player.height);
+    }
+
+    function drawBullets() {
+      ctx.fillStyle = 'yellow';
+      bullets.forEach((b, index) => {
+        b.y -= 10;
+        if (b.y < 0) bullets.splice(index, 1);
+        else ctx.fillRect(b.x, b.y, 5, 10);
+      });
+    }
+
+    function drawEnemies() {
+      ctx.fillStyle = 'red';
+      enemies.forEach((e, i) => {
+        e.y += 2;
+        ctx.fillRect(e.x, e.y, e.width, e.height);
+
+        // Check for hit
+        bullets.forEach((b, bi) => {
+          if (
+            b.x < e.x + e.width &&
+            b.x + 5 > e.x &&
+            b.y < e.y + e.height &&
+            b.y + 10 > e.y
+          ) {
+            enemies.splice(i, 1);
+            bullets.splice(bi, 1);
+          }
+        });
+
+        // Game over
+        if (e.y > canvas.height) {
+          alert("Game Over!");
+          window.location.reload();
+        }
+      });
+    }
+
+    function spawnEnemy() {
+      const x = Math.random() * (canvas.width - 30);
+      enemies.push({ x, y: 0, width: 30, height: 30 });
+    }
+
+    function gameLoop() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      drawPlayer();
+      drawBullets();
+      drawEnemies();
+      requestAnimationFrame(gameLoop);
+    }
+
+    setInterval(spawnEnemy, 1000);
+    gameLoop();
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'ArrowLeft') player.x -= player.speed;
+      if (e.key === 'ArrowRight') player.x += player.speed;
+      if (e.key === ' ' || e.key === 'ArrowUp') {
+        bullets.push({
+          x: player.x + player.width / 2 - 2.5,
+          y: player.y
+        });
+      }
+    });
+  </script>
 </body>
 </html>
-
